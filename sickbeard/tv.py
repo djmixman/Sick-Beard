@@ -843,8 +843,19 @@ class TVShow(object):
 
         # if we are re-downloading then we only want it if it's in our bestQualities list and better than what we have
         if curStatus in Quality.SNATCHED + Quality.DOWNLOADED and quality in bestQualities and quality > curQuality:
-            logger.log(u"We already have this ep but the new one is better quality, saying yes", logger.DEBUG)
-            return True
+
+# Changed by MiX-MaN, This will change the way sickbeard handles the ReDownload options
+# If the quality of the file and the quality of ANY one of the redownload selections do not match, it will redownload the better version
+# If the quality of the file and the quality of ANY one of the redownload selections do match, it will not download the file...
+
+            if curQuality in bestQualities or quality:
+                logger.log(u"We already have one of the selections in the redownload list, download ignored.", logger.DEBUG)  
+                return False
+            else:
+                logger.log(u"We already have this ep but the new one is better quality, saying yes", logger.DEBUG)
+                return True
+
+# End of Modification
 
         logger.log(u"None of the conditions were met so I'm just saying no", logger.DEBUG)
         return False
@@ -874,8 +885,16 @@ class TVShow(object):
             if maxBestQuality == None:
                 return Overview.GOOD
             # if they have one but it's not the best they want then mark it as qual
-            elif curQuality < maxBestQuality:
+
+# Changed by MiX-MaN, This will change the way sickbeard handles the ReDownload options
+# If the quality of the file and the quality of ANY one of the redownload selections do not match, it will redownload the better version
+# If the quality of the file and the quality of ANY one of the redownload selections do match, it will not download the file...
+
+            elif curQuality not in bestQualities:
                 return Overview.QUAL
+
+# End of Modification
+
             # if it's >= maxBestQuality then it's good
             else:
                 return Overview.GOOD
