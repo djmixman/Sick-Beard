@@ -45,6 +45,8 @@ simple_test_cases = {
 
               'bare': {
               'Show.Name.102.Source.Quality.Etc-Group': parser.ParseResult(None, 'Show Name', 1, [2], 'Source.Quality.Etc', 'Group'),
+              'show.name.2010.123.source.quality.etc-group': parser.ParseResult(None, 'show name 2010', 1, [23], 'source.quality.etc', 'group'),
+              'show.name.2010.222.123.source.quality.etc-group': parser.ParseResult(None, 'show name 2010.222', 1, [23], 'source.quality.etc', 'group'),
               'Show.Name.102': parser.ParseResult(None, 'Show Name', 1, [2]),
               },
               
@@ -95,10 +97,18 @@ combination_test_cases = [
                            parser.ParseResult(None, 'MythBusters', 8, [16], '720p.HDTV.x264', 'aAF'),
                            ['standard']),
                            
-                           ('/home/drop/storage/TV/Terminator The Sarah Connor Chronicles/Season 2/S02E06 The Tower is Tall, But the Fall is Short.mkv',
-                            parser.ParseResult(None, None, 2, [6], 'The Tower is Tall, But the Fall is Short'),
-                            ['standard']),
-                          
+                          ('/home/drop/storage/TV/Terminator The Sarah Connor Chronicles/Season 2/S02E06 The Tower is Tall, But the Fall is Short.mkv',
+                           parser.ParseResult(None, None, 2, [6], 'The Tower is Tall, But the Fall is Short'),
+                           ['standard']),
+                           
+                          (r'Q:\Test\TV\Jimmy Fallon\Season 2\Jimmy Fallon - 2010-12-15 - blah.avi',
+                           parser.ParseResult(None, 'Jimmy Fallon', extra_info = 'blah', air_date = datetime.date(2010,12,15)),
+                           ['scene_date_format']),
+
+                          (r'x:\30 Rock\Season 4\30 Rock - 4x22 -.avi',
+                           parser.ParseResult(None, '30 Rock', 4, [22]),
+                           ['fov']),
+                           
                           ]
 
 unicode_test_cases = [
@@ -238,6 +248,10 @@ class BasicTests(unittest.TestCase):
     def test_no_season_file_names(self):
         np = parser.NameParser()
         self._test_names(np, 'no_season', lambda x: x + '.avi')
+
+    def test_no_season_general_file_names(self):
+        np = parser.NameParser()
+        self._test_names(np, 'no_season_general', lambda x: x + '.avi')
 
     def test_season_only_file_names(self):
         np = parser.NameParser()
