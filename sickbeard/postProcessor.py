@@ -624,7 +624,7 @@ class PostProcessor(object):
             try:
                 ek.ek(os.mkdir, dest_path)
 # Gonna try this / mix-man
-		ek.ek(os.chmod, dest_path, 777)
+                os.chmod(dest_path, 777)
             except OSError, IOError:
                 raise exceptions.PostProcessingFailed("Unable to create the episode's destination folder: "+str(dest_path))
 
