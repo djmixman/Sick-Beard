@@ -144,16 +144,6 @@ class ManageSearches:
         return _munge(t)
 
     @cherrypy.expose
-    def forceBacklog(self):
-
-        # force it to run the next time it looks
-        sickbeard.backlogSearchScheduler.forceSearch()
-        logger.log(u"Backlog search started in background")
-        ui.flash.message('Backlog search started',
-                      'The backlog search has begun and will run in the background')
-        redirect("/manage/manageSearches")
-
-    @cherrypy.expose
     def forceSearch(self):
 
         # force it to run the next time it looks
@@ -674,7 +664,7 @@ class ConfigEpisodeDownloads:
     def saveEpisodeDownloads(self, nzb_dir=None, sab_username=None, sab_password=None,
                        sab_apikey=None, sab_category=None, sab_host=None,
                        torrent_dir=None, nzb_method=None, usenet_retention=None,
-                       search_frequency=None, backlog_search_frequency=None, tv_download_dir=None,
+                       search_frequency=None, tv_download_dir=None,
                        keep_processed_dir=None, process_automatically=None, rename_episodes=None,
                        download_propers=None, move_associated_files=None):
 
@@ -690,8 +680,6 @@ class ConfigEpisodeDownloads:
             results += ["Unable to create directory " + os.path.normpath(torrent_dir) + ", dir not changed."]
 
         config.change_SEARCH_FREQUENCY(search_frequency)
-
-        config.change_BACKLOG_SEARCH_FREQUENCY(backlog_search_frequency)
 
         if download_propers == "on":
             download_propers = 1
@@ -1731,10 +1719,16 @@ class Home:
                     epObj.status = int(status)
                     epObj.saveToDB()
 
+        msg = "Backlog was automatically started for the following seasons of <b>"+showObj.name+"</b>:<br />"
         for cur_segment in segment_list:
+            msg += "<li>Season "+str(cur_segment)+"</li>"
             logger.log(u"Sending backlog for "+showObj.name+" season "+str(cur_segment)+" because some eps were set to wanted")
             cur_backlog_queue_item = search_queue.BacklogQueueItem(showObj, cur_segment)
             sickbeard.searchQueueScheduler.action.add_item(cur_backlog_queue_item)
+        msg += "</ul>"
+
+        if segment_list:
+            ui.flash.message("Backlog started", msg)
 
         if direct:
             return json.dumps({'result': 'success'})

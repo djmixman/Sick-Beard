@@ -113,13 +113,6 @@ td,td {
 padding:5px;
 }
 
-th {
-font-weight:700;
-background:#fff;
-background-color:#333;
-color:#FFF;
-}
-
 tr.active {
 font-weight:700;
 }
@@ -210,6 +203,13 @@ margin-left:auto;
 margin-right:auto;
 }
 
+.sickbeardTable th{
+padding: 2px;
+font-weight:700;
+background-color:#333;
+color:#FFF;
+}
+
 .row {
 clear:left;
 }
@@ -280,7 +280,7 @@ padding:2px;
 }
 
 tr.skipped,span.skipped {
-background-color:#9DD7F2;
+background-color:#BEDEED;
 padding:2px;
 }
 
