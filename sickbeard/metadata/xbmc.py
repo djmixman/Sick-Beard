@@ -293,7 +293,6 @@ class XBMCMetadata(generic.GenericMetadata):
         helpers.indentXML( rootNode )
 
         data = etree.ElementTree( rootNode )
-
         return data
 
 # present a standard "interface" from the module
