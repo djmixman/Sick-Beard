@@ -735,10 +735,13 @@ class ConfigEpisodeDownloads:
         sickbeard.SAB_APIKEY = sab_apikey.strip()
         sickbeard.SAB_CATEGORY = sab_category
 
-        if sab_host.startswith('http://'):
-            sickbeard.SAB_HOST = sab_host[7:].rstrip('/')
-        else:
-            sickbeard.SAB_HOST = sab_host
+        if sab_host and not re.match('https?://.*', sab_host):
+            sab_host = 'http://' + sab_host
+
+        if not sab_host.endswith('/'):
+            sab_host = sab_host + '/'
+
+        sickbeard.SAB_HOST = sab_host
 
         sickbeard.save_config()
 
@@ -1048,7 +1051,7 @@ def haveXBMC():
 
 def HomeMenu():
     return [
-    { 'title': 'Add Shows',              'path': 'home/addShows/'                           },
+    { 'title': 'Add Shows',              'path': 'home/addShows/',                          },
     { 'title': 'Manual Post-Processing', 'path': 'home/postprocess/'                        },
     { 'title': 'Update XBMC',            'path': 'home/updateXBMC/', 'requires': haveXBMC   },
     { 'title': 'Restart',                'path': 'home/restart/?pid='+str(sickbeard.PID)    },
@@ -1061,7 +1064,7 @@ class HomePostProcess:
     def index(self):
 
         t = PageTemplate(file="home_postprocess.tmpl")
-        #t.submenu = HomeMenu()
+        t.submenu = HomeMenu()
         return _munge(t)
 
     @cherrypy.expose
@@ -1084,7 +1087,7 @@ class NewHomeAddShows:
     def index(self):
 
         t = PageTemplate(file="home_addShows.tmpl")
-        #t.submenu = HomeMenu()
+        t.submenu = HomeMenu()
         return _munge(t)
 
     @cherrypy.expose
@@ -1178,7 +1181,7 @@ class NewHomeAddShows:
             redirect("/home")
 
         t = PageTemplate(file="home_addShow.tmpl")
-        #t.submenu = HomeMenu()
+        t.submenu = HomeMenu()
 
         # make sure everything's unescaped
         showDirs = [os.path.normpath(urllib.unquote_plus(x)) for x in showDirs]
