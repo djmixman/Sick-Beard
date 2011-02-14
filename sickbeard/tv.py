@@ -872,9 +872,14 @@ class TVShow(object):
         curStatus, curQuality = Quality.splitCompositeStatus(epStatus)
 
         # if we are re-downloading then we only want it if it's in our bestQualities list and better than what we have
+        # MiX-MaN
         if curStatus in Quality.SNATCHED + Quality.DOWNLOADED and quality in bestQualities and quality > curQuality:
-            logger.log(u"We already have this ep but the new one is better quality, saying yes", logger.DEBUG)
-            return True
+            if curQuality in bestQualities or quality:
+               logger.log(u"We already have one of the selections in the redownload list, download ignored.", logger.DEBUG)
+               return False
+            else:
+               logger.log(u"We already have this ep but the new one is better quality, saying yes", logger.DEBUG)
+               return True
 
         logger.log(u"None of the conditions were met so I'm just saying no", logger.DEBUG)
         return False
@@ -903,10 +908,8 @@ class TVShow(object):
             # if they don't want re-downloads then we call it good if they have anything
             if maxBestQuality == None:
                 return Overview.GOOD
-            # if they have one but it's not the best they want then mark it as qual
-            elif curQuality < maxBestQuality:
+            elif curQuality not in bestQualities:
                 return Overview.QUAL
-            # if it's >= maxBestQuality then it's good
             else:
                 return Overview.GOOD
 
