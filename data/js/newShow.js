@@ -1,30 +1,41 @@
 $(document).ready(function(){
 
-    $.getJSON(sbRoot+'/home/addShows/getTVDBLanguages', {}, function(data){
-        var resultStr = '';
+    function populateSelect() {
+        if (!$('#nameToSearch').length)
+            return
 
-        if (data.results.length == 0) {
-            resultStr = '<option value="en" selected="selected">en</option>';
-        } else {
-            $.each(data.results, function(index, obj){
-                if (resultStr == '')
-                        selected = ' selected="selected"';
-                else
-                        selected = '';
-
-                resultStr += '<option value="' + obj + '"' + selected + '>' + obj + '</option>';
+        if ($('#tvdbLangSelect option').length <= 1) {
+            $.getJSON(sbRoot+'/home/addShows/getTVDBLanguages', {}, function(data){
+                var resultStr = '';
+        
+                if (data.results.length == 0) {
+                    resultStr = '<option value="en" selected="selected">en</option>';
+                } else {
+                    $.each(data.results, function(index, obj){
+                        if (resultStr == '')
+                                selected = ' selected="selected"';
+                        else
+                                selected = '';
+        
+                        resultStr += '<option value="' + obj + '"' + selected + '>' + obj + '</option>';
+                    });
+                }
+        
+                $('#tvdbLangSelect').html(resultStr);
+        
+                $('#tvdbLangSelect').change(function() { searchTvdb() });
             });
         }
-        $('#tvdbLangSelect').html(resultStr)
-
-        $('#tvdbLangSelect').change(function() { searchTvdb() });
-    });
-
+    }
 
     function searchTvdb(){
+        if (!$('#nameToSearch').length)
+            return
+
         $('#searchResults').html('<img id="searchingAnim" src="'+sbRoot+'/images/loading32.gif" height="32" width="32" /> searching...');
 
         $.getJSON(sbRoot+'/home/addShows/searchTVDBForShowName', {'name': $('#nameToSearch').val(), 'lang': $('#tvdbLangSelect').val()}, function(data){
+            var firstResult = true;
             var resultStr = '<fieldset>\n<legend>Search Results:</legend>\n';
             
             if (data.results.length == 0) {
@@ -32,9 +43,10 @@ $(document).ready(function(){
             } else {
             
                 $.each(data.results, function(index, obj){
-                    if (resultStr == '')
+                    if (firstResult) {
                         checked = ' checked';
-                    else
+                        firstResult = false;
+                    } else
                         checked = '';
                     resultStr += '<input type="radio" id="whichSeries" name="whichSeries" value="' + obj[0] + '|' + obj[1] + '"' + checked + ' /> ';
                     if(data.langid && data.langid != "")
@@ -52,23 +64,17 @@ $(document).ready(function(){
             $('#searchResults').html(resultStr);
             updateSampleText();
         });
-    };  
+    };
 
     $('#searchName').click(function() {searchTvdb()});
 
-    if ($('#nameToSearch').val().length)
+    if ($('#nameToSearch').length && $('#nameToSearch').val().length)
         $('#searchName').click()
-
-    $('#cancelShow').click(function(){
-        $('#cancelShowItem').val(1);
-        $('#addShowForm').submit();
-    });
-    
 
     $('#addShowButton').click(function(){
         
         // if they haven't picked a show don't let them submit
-        if (!$("input[name='whichSeries']:checked").val()) {
+        if (!$("input:radio[name='whichSeries']:checked").val() && !$("input:hidden[name='whichSeries']").val().length) {
             alert('You must choose a show to continue');
             return false;
         }
@@ -90,53 +96,80 @@ $(document).ready(function(){
 
     var myform=new formtowizard({
         formid: 'addShowForm',
-        revealfx: ['slide', 500]
+        revealfx: ['slide', 500],
+        oninit: function () {
+            populateSelect();
+            updateSampleText();
+            if ($('input:hidden[name=whichSeries]').length && $('#fullShowPath').length)
+                goToStep(3);
+            if ($('#nameToSearch').length)
+                $('#nameToSearch').focus();
+        }
     });
+
+    function goToStep(num){
+        $('.step').each(function(){
+            if ($.data(this, 'section')+1 == num)
+                $(this).click();
+        });
+    }
 
     $('#nameToSearch').focus();
 
-    $('#makeStatusDefault').live('click', function() {
-        $.get(sbRoot+'/config/general/saveDefaultStatus', {defaultStatus: $('#statusSelect').val()} );
-        return false;
-    });
-
-    $('#makeQualityDefault').live('click', function() {
-        $.get(sbRoot+'/config/general/saveDefaultQuality', {defaultQuality: $('#qualityPreset').val()} );
-        return false;
-    });
-
-    $('#makeSeasonFoldersDefault').live('click', function() {
-        $.get(sbRoot+'/config/general/saveDefaultSeasonFolders', {defaultSeasonFolders: $('#seasonFolders').val()} );
-        return false;
-    });
-
-    $('#statusSelect').after('(<a href="#" id="makeStatusDefault">make default</a>)');
-    $('#qualityPreset').after('(<a href="#" id="makeQualityDefault">make default</a>)');
-    $('#seasonFolders').after('(<a href="#" id="makeSeasonFoldersDefault">make default</a>)');
-
     function updateSampleText() {
         // if something's selected then we have some behavior to figure out
+        
+        var show_name;
+        // if they've picked a radio button then use that
+        if ($('input:radio[name=whichSeries]:checked').length)
+            show_name = $('input:radio[name=whichSeries]:checked').val().split('|')[1];
+
+        // if we provided a show in the hidden field, use that 
+        else if ($('input:hidden[name=whichSeries]').length && $('input:hidden[name=whichSeries]').val().length)
+            show_name = $('#providedName').val();
+
+        else
+            show_name = '';
+        
+        var sample_text = 'Adding show <b>'+show_name+'</b> into <b>';
+
+        // if we have a root dir selected, figure out the path
         if ($("#rootDirs option:selected").length) {
-            sample_text = $('#rootDirs option:selected').val();
-            if (sample_text.indexOf('/') >= 0)
+            var root_dir_text = $('#rootDirs option:selected').val();
+            if (root_dir_text.indexOf('/') >= 0)
                 sep_char = '/';
-            else if (sample_text.indexOf('\\') >= 0)
+            else if (root_dir_text.indexOf('\\') >= 0)
                 sep_char = '\\';
 
-            sample_text = 'Eg. <b>' + sample_text;
-            if (sample_text.substr(sample_text.length-1) != sep_char)
-                sample_text += sep_char;
-            sample_text += '</b><i>||</i>' + sep_char;
+            if (root_dir_text.substr(sample_text.length-1) != sep_char)
+                root_dir_text += sep_char;
+            root_dir_text += '<i>||</i>' + sep_char;
 
-            if ($('input:radio[name=whichSeries]:checked').length) {
-                var selected_name = $('input:radio[name=whichSeries]:checked').val().split('|')[1];
-                $.get(sbRoot+'/home/addShows/sanitizeFileName', {name: selected_name}, function(data){
-                     $('#sampleRootDir').html(sample_text.replace('||', data));
-                });
-            } else {
-                $('#sampleRootDir').html(sample_text.replace('||', 'Show Name'));
-            }
+            sample_text += root_dir_text;
+        } else if ($('#fullShowPath').length && $('#fullShowPath').val().length) {
+            sample_text += $('#fullShowPath').val();
+        } else {
+            sample_text += 'unknown dir.';
         }
+        
+        sample_text += '</b>';
+
+        // if we have a show name then sanitize and use it for the dir name
+        if (show_name.length) {
+            $.get(sbRoot+'/home/addShows/sanitizeFileName', {name: show_name}, function(data){
+                 $('#displayText').html(sample_text.replace('||', data));
+            });
+
+        // if not then it's unknown
+        } else
+            $('#displayText').html(sample_text.replace('||', '??'));
+        
+        // also toggle the add show button
+        if (($("#rootDirs option:selected").length || ($('#fullShowPath').length && $('#fullShowPath').val().length)) && 
+            ($('input:radio[name=whichSeries]:checked').length) || ($('input:hidden[name=whichSeries]').length && $('input:hidden[name=whichSeries]').val().length))
+            $('#addShowButton').attr('disabled', false);
+        else
+            $('#addShowButton').attr('disabled', true);
     }
     
     $('#rootDirText').change(updateSampleText);

@@ -1,5 +1,6 @@
 #import sickbeard.version
 #import sickbeard
+#import urllib
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -30,7 +31,7 @@ table.tablesorter thead tr .headerSortDown { background-image: url("$sbRoot/imag
 .browserDialog.busy .ui-dialog-buttonpane { background: url("$sbRoot/images/loading.gif") 10px 50% no-repeat; }
 
 .ui-dialog, .ui-dialog-buttonpane { background: #eceadf url("$sbRoot/css/smooth-grinder/images/ui-bg_fine-grain_10_eceadf_60x60.png") 50% 50% repeat !important; }
-.ui-accordion-content { background: #ededed !important; background-image: none !important; }
+.ui-accordion-content, .ui-tabs-panel { background: #ededed !important; background-image: none !important; }
 
 .ui-widget-content { border: 1px solid #aaaaaa; background: #dcdcdc url("$sbRoot/css/smooth-grinder/images/ui-bg_highlight-soft_75_dcdcdc_1x100.png") 50% top repeat-x; color: #222222; }
 .ui-widget-header { border: 1px solid #aaaaaa; background: #ffffff url("$sbRoot/css/smooth-grinder/images/ui-bg_flat_0_ffffff_40x100.png") 50% 50% repeat-x; color: #222222; font-weight: bold; }
@@ -68,6 +69,7 @@ table.tablesorter thead tr .headerSortDown { background-image: url("$sbRoot/imag
     <script type="text/javascript" src="$sbRoot/js/jquery.tablesorter-2.0.3.min.js"></script>
     <script type="text/javascript" src="$sbRoot/js/tools.tooltip-1.2.5.min.js"></script>
     <script type="text/javascript" src="$sbRoot/js/jquery.pnotify-1.0.1.min.js"></script>
+    <script type="text/javascript" src="$sbRoot/js/jquery.divgrow-1.3.1.min.js"></script>
 
     <script type="text/javascript" charset="utf-8">
         sbRoot = "$sbRoot";
@@ -135,8 +137,8 @@ table.tablesorter thead tr .headerSortDown { background-image: url("$sbRoot/imag
 
     #for $curMessage in $flash.messages():
         \$.pnotify({
-            pnotify_title: '$curMessage[0].replace('\\','\\\\').replace('"','\\"')',
-            pnotify_text: '$curMessage[1].replace('\\','\\\\').replace('"','\\"')'
+            pnotify_title: decodeURIComponent('$urllib.quote($curMessage[0])'),
+            pnotify_text: decodeURIComponent('$urllib.quote($curMessage[1])')
         });
     #end for
 
@@ -144,8 +146,8 @@ table.tablesorter thead tr .headerSortDown { background-image: url("$sbRoot/imag
         \$.pnotify({
             pnotify_type: 'error',
             pnotify_hide: false,
-            pnotify_title: '$curError[0].replace('\\','\\\\').replace('"','\\"')',
-            pnotify_text: '$curError[1].replace('\\','\\\\').replace('"','\\"')'
+            pnotify_title: decodeURIComponent('$urllib.quote($curError[0])'),
+            pnotify_text: decodeURIComponent('$urllib.quote($curError[1])')
         });
     #end for
 
@@ -177,8 +179,7 @@ table.tablesorter thead tr .headerSortDown { background-image: url("$sbRoot/imag
             </li>
             <li id="NAVhome"><a href="$sbRoot/home">Home</a>
                 <ul>
-                        <li><a href="$sbRoot/home/addShows/newShow/"><img src="$sbRoot/images/menu/addshow16.png" alt="" width="16" height="16" />Add New Show</a></li>
-                        <li><a href="$sbRoot/home/addShows/existingShows/"><img src="$sbRoot/images/menu/addshow16.png" alt="" width="16" height="16" />Add Existing Shows</a></li>
+                        <li><a href="$sbRoot/home/addShows/"><img src="$sbRoot/images/menu/addshow16.png" alt="" width="16" height="16" />Add Shows</a></li>
                         <li><a href="$sbRoot/home/postprocess/"><img src="$sbRoot/images/menu/postprocess16.png" alt="" width="16" height="16" />Manual Post-Processing</a></li>
                 </ul>
             </li>
